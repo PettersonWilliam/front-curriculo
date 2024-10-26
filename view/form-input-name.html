@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário Dinâmico</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Adicionar Nome e CPF</h1>
+    <form id="form">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" required>
+        <br>
+        <label for="cpf">CPF:</label>
+        <input type="text" id="cpf" name="cpf" required>
+        <br>
+        <button type="button" onclick="addRow()">Salvar</button>
+    </form>
+
+    <h2>Lista de Nomes e CPFs</h2>
+    <table id="tabela">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        function addRow() {
+            const nome = document.getElementById('nome').value;
+            const cpf = document.getElementById('cpf').value;
+
+            if (nome && cpf) {
+                const tabela = document.getElementById('tabela');
+                const tbody = tabela.getElementsByTagName('tbody')[0];
+
+                // Criar uma nova linha e células
+                const newRow = tbody.insertRow();
+                const contentName = newRow.insertCell(0);
+                const contentCpf = newRow.insertCell(1);
+
+                // Definir o conteúdo das células
+                contentName.textContent = nome;
+                contentCpf.textContent = cpf;
+            } else {
+                alert('Por favor, preencha ambos os campos.');
+            }
+        }
+
+        function sendCep() {
+            const cep = document.getElementById("cep").value;
+            const url = `https://viacep.com.br/ws/${cep}/json/`;
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch(url, requestOptions)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("endereco").innerHTML = data.logradouro;
+            });
+        }
+
+        function sendDataApi() {
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const raw = JSON.stringify({
+                "cpf": document.getElementById("cpf").value,
+                "nome": document.getElementById("nome").value
+            });
+
+            const requestOptions = {
+                method: "POST",
+                headers: myHeaders,
+                body: raw,
+                redirect: "follow"
+            };
+
+            fetch("http://127.0.0.1:5000/items", requestOptions)
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById("tabela").innerHTML += `<tr><td>${result.nome}</td><td>${result.cpf}</td></tr>`;
+            })
+            .catch(error => {
+                alert("Erro ao enviar os dados!");
+            });
+        }
+
+        function getDataApi() {
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const requestOptions = {
+                method: "GET",
+                headers: myHeaders,
+                redirect: "follow"
+            };
+
+            fetch("http://127.0.0.1:5000/items", requestOptions)
+            .then(response => response.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    alert("Dados não encontrados!");
+                    return;
+                }
+
+                data.forEach(item => {
+                    const nome = item.nome;
+                    const cpf = item.cpf;
+                    document.getElementById("tabela").innerHTML += `<tr><td>${nome}</td><td>${cpf}</td></tr>`;
+                });
+            }).catch(error => {
+                alert("Erro ao buscar os dados!");
+            });
+        }
+    </script>
+</body>
+</html>
